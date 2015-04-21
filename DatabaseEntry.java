@@ -7,8 +7,19 @@ public class DatabaseEntry {
 		this.fileType = fileType.substring(1,fileType.length() - 1);
 	}
 	
-	public int[] getSignature(){
+	public int[] getSignatureInt(){
 		return signature;
+	}
+	
+	public CharSequence getSignatureSequence(){
+		String ss = "";
+		for(int i = 0; i < signature.length; i++){
+			if(signature[i] < 0x10)
+				ss += "0";
+			ss += Integer.toHexString(signature[i]).toUpperCase() + " ";
+		}
+		CharSequence s = ss;
+		return s;
 	}
 	
 	public String getFileType(){
@@ -18,7 +29,7 @@ public class DatabaseEntry {
 	public String toString(){
 		String ss = "";
 		for(int i = 0; i < signature.length; i++){
-			if(signature[i] < 16)
+			if(signature[i] < 0x10)
 				ss+= "0";
 			ss += Integer.toHexString(signature[i]).toUpperCase() + " ";
 		}

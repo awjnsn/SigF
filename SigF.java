@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
@@ -8,23 +9,18 @@ import java.util.Scanner;
 public class SigF {
 	
 	public static void main(String[] args) {
-		try{
-			File target = new File("res/target.txt");
-			RandomAccessFile r = new RandomAccessFile(target, "r");
-			DatabaseEntry[] d = importDatabase();
-			for(DatabaseEntry n: d)
-				System.out.println(n);
-		}
-		catch(FileNotFoundException e){
-			System.out.println("The file specified cannot be found.");
+		if(args.length < 2){
+			System.out.println("Please specify a target and database.  Ex. java SigF photo.png sigdb.txt");
 			System.exit(1);
 		}
+		File t = new File(args[0]);
+		File d = new File(args[1]);
+		signatureSearch(importDatabase(d), importTarget(t));
 	}
 	
-	public static DatabaseEntry[] importDatabase(){
+	public static DatabaseEntry[] importDatabase(File data){
 		try{
 			List<DatabaseEntry> database = new ArrayList<DatabaseEntry>();
-			File data = new File("res/data.txt");
 			Scanner sc = new Scanner(data);
 			sc.useRadix(16);
 			while(sc.hasNextLine()){
@@ -48,5 +44,36 @@ public class SigF {
 		}
 		return null;
 	}
+	
+	public static String importTarget(File f){
+		try{
+			@SuppressWarnings("resource")
+			RandomAccessFile r = new RandomAccessFile(f,"r");
+			List<Integer> data = new ArrayList<Integer>();
+			for(int i = 0; i < r.length(); i++)
+				data.add(r.read());
+			String s = "";
+			for(int i = 0; i < data.size(); i++){
+				if(data.get(i) < 0x10){
+					s += "0";
+				}
+				s += Integer.toHexString(data.get(i)).toUpperCase() + " ";
+			}
+			return s.trim();
+		}
+		catch(FileNotFoundException e){
+			System.out.println("The specified file could not be found.");
+		}
+		catch(IOException e){
+			System.out.print("Failed to read some stuff in");
+		}
+		return null;
+	}
 
+	public static void signatureSearch(DatabaseEntry[] d, String t){
+		for(int i = 0; i < d.length; i++){
+			if(t.contains(d[i].getSignatureSequence()))
+				System.out.println(d[i].getFileType() + " Detected!");
+		}
+	}
 }
